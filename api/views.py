@@ -1,12 +1,12 @@
-from django.shortcuts import render
-from rest_framework.response import Response
+from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
-from .models import User
-from .serializers import UserSerializers
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Todo
+from .serializers import TodoSerializer
 
-# Create your views here.
 @api_view(['GET'])
-def get_user(request):
-      user = User.objects.all() ;
-      serializer= UserSerializers(user, many=True)
-      return Response(serializer.data)
+def get_all_todos(request):
+    todos = Todo.objects.all()
+    serializer = TodoSerializer(todos, many=True)
+    return Response(serializer.data)

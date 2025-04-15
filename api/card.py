@@ -49,10 +49,10 @@ def create_cardholder():
 
 # accept policy for user
 
-def accept_policy():
+def accept_policy(cardHolderId, cardId):
     current_timestamp = int(time.time())  # Get current time as Unix timestamp
     policy_update = stripe.issuing.Cardholder.modify(
-        os.getenv("CARDHOLDER_ID"),
+        cardHolderId,
         individual={
             "card_issuing": {
                 "user_terms_acceptance": {
@@ -62,8 +62,10 @@ def accept_policy():
             },
         },
     )
+    activate= stripe.issuing.Card.modify(cardId,status="active")
 
     print(policy_update)
+    
 
 # accept_policy()
 

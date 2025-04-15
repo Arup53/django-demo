@@ -71,25 +71,29 @@ def accept_policy(cardHolderId, cardId):
 
 
 # activate user card for transaction 
-def update_card_status():
-    activate= stripe.issuing.Card.modify(
-  os.getenv("CARD_ID"),
-  status="active",
-)
+# def update_card_status():
+#     activate= stripe.issuing.Card.modify(
+#   os.getenv("CARD_ID"),
+#   status="active",
+# )
     
     
 # update_card_status()
 
-def test_payment():
-    
- authorization= stripe.issuing.Authorization.TestHelpers.create(
-  amount=100,
-  card=os.getenv("CARD_ID"),
-)
- 
- authorize_payment= stripe.issuing.Authorization.TestHelpers.capture(authorization.id)
-
- print(authorize_payment);
 
 
+
+def pay_with_virtual_card(card_id, amount):
+    try:
+        authorization= stripe.issuing.Authorization.TestHelpers.create(
+           amount=amount,
+           card=card_id,
+        )
+        authorize_payment= stripe.issuing.Authorization.TestHelpers.capture(authorization.id)
+        
+        print(authorize_payment);
+        return {"approved": True}
+    except Exception as e:
+        print("Stripe error:", str(e))
+        return {"approved": False, "error": str(e)}
 

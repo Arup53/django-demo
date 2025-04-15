@@ -2,9 +2,9 @@ from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Todo,User, CardDetails
+from .models import Todo,User, CardDetails, Transaction
 from .serializers import TodoSerializer, CardDetailsSerializer
-from .card import create_cardholder, accept_policy
+from .card import create_cardholder, accept_policy, pay_with_virtual_card
 
 @api_view(['GET'])
 def get_all_todos(request):
@@ -67,3 +67,30 @@ def approve_card(request):
         return Response({"error": "Card not found."}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+
+
+@api_view(['POST'])
+def create_transaction(request):
+    user_id = request.data.get('userId')
+    card_id = request.data.get('cardId')
+    amount = request.data.get('amount')
+
+    if not user_id or not card_id or not amount:
+        return Response({"error": "userId, cardId, and amount are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+    # 1. Try to make payment with virtual card
+    payment_result = pay_with_virtual_card(card_id, amount)  # Stripe uses cents
+
+    if payment_result.get("approved"):
+        try:
+            user = User.objects.get(id=user_id)
+            transaction = Transaction.objects.create(user=user, amount=amount)
+            return Response({
+                "message": "success",
+                "amount": transaction.amount
+            }, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response({"message": "Database error", "error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    return Response({"message": "Transaction declined"}, status=status.HTTP_402_PAYMENT_REQUIRED)

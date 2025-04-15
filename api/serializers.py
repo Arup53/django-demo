@@ -12,7 +12,6 @@ class TodoSerializer(serializers.ModelSerializer):
 
 
 
-
 class CardDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = CardDetails
